@@ -158,7 +158,8 @@ RCT_EXPORT_MODULE()
                                                object:nil];
 
     [RNNotificationsBridgeQueue sharedInstance].openedRemoteNotification = [_bridge.launchOptions objectForKey:UIApplicationLaunchOptionsRemoteNotificationKey];
-    [RNNotificationsBridgeQueue sharedInstance].openedLocalNotification = [_bridge.launchOptions objectForKey:UIApplicationLaunchOptionsLocalNotificationKey];
+    UILocalNotification *localNotification = [_bridge.launchOptions objectForKey:UIApplicationLaunchOptionsLocalNotificationKey];
+    [RNNotificationsBridgeQueue sharedInstance].openedLocalNotification = localNotification ? localNotification.userInfo : nil;
 }
 
 /*
@@ -213,6 +214,7 @@ RCT_EXPORT_MODULE()
 
     NSMutableDictionary* newUserInfo = notification.userInfo.mutableCopy;
     [newUserInfo removeObjectForKey:@"__id"];
+    [newUserInfo setObject:notification.alertBody forKey:@"alertBody"];
     notification.userInfo = newUserInfo;
 
     if (state == UIApplicationStateActive) {
@@ -507,6 +509,7 @@ RCT_EXPORT_METHOD(consumeBackgroundQueue)
     // Push opened local notifications
     NSDictionary* openedLocalNotification = [RNNotificationsBridgeQueue sharedInstance].openedLocalNotification;
     if (openedLocalNotification) {
+        [RNNotificationsBridgeQueue sharedInstance].openedLocalNotification = nil;
         [RNNotifications didNotificationOpen:openedLocalNotification];
     }
 
